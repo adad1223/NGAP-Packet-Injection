@@ -8,12 +8,12 @@ from scapy.all import *
 from pycrate_asn1rt.utils import *
 from final import final_decode,value,update_list
 from getting_nas import gettingNAS,updatingNAS,getting_msg_type
+from big_numbers import checking_for_big_nos,converting_string_to_int
 from pycrate_mobile.NAS5G import *
 from pycrate_mobile.NAS import *
 from pycrate_asn1dir import NGAP
 from new import getting_packet_attr
 app1= Flask(__name__)
-app1.secret_key = "secret key"
 a=None
 def convert_strings_to_bytes(i):
     def convert_bytes_to_strings(obj):
@@ -30,7 +30,6 @@ def convert_strings_to_bytes(i):
     c = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
     my_packets = c[i]
     scapy_packet = IP(my_packets.get_raw_packet())
-
     raw_data = scapy_packet[SCTPChunkData].data
     x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
     x.from_aper(raw_data)
@@ -43,10 +42,31 @@ ngapMessage = None
 @app1.before_request
 def load_ngap_message():
     global ngapMessage
-    with open('./integrated/packet.json', 'r') as f:
-        ngapMessage = json.load(f)
-        print(ngapMessage)
-        print("\n")
+    # checking_for_big_nos()
+    # with open('./integrated/packet.json', 'r') as f:
+    #     ngapMessage = json.load(f)
+    # f.close()
+    # def convert_to_bytes(js,par,val):
+    #     if isinstance(js, dict):
+
+    #         for key, value in js.items():
+    #             if(key=='pDUSessionNAS-PDU'):
+    #                 val=value
+    #             val = convert_to_bytes(value,js,val)
+    #     elif isinstance(js, list):
+    #         # print(js[0])
+    #         for i, item in enumerate(js):
+    #             print(item)
+    #             val = convert_to_bytes(item,js,val)
+    #     # elif isinstance(js, str):
+    #         # if(js=='NAS-PDU'):
+    #             # val=par[1]
+    #         # elif(js=='pDUSessionNAS-PDU'):
+    #         #     print(par)
+            
+    #     return val
+    # val = convert_to_bytes(ngapMessage,None,val)
+    # print(val)
 @app1.route('/', methods=['GET'])
 def index():
     # flash('This is a flash message')
@@ -212,8 +232,9 @@ def process_header():
 </html>
 '''
     elif request.method=='GET':
-        with open('./integrated/packet.json', 'r') as f:
-            ngapMessage = json.load(f)
+        # with open('./integrated/packet.json', 'r') as f:
+            # ngapMessage = json.load(f)
+            ngapMessage=checking_for_big_nos()
             return '''
      <!DOCTYPE html>
 <html>
@@ -226,7 +247,6 @@ def process_header():
     <div id="ngap-message"></div>
     <script>
  const ngapMessage = ''' + json.dumps(ngapMessage) + ''';
- console.log(ngapMessage)
     let val=0;
 function displayObject(obj, container, parentObj, parentKey) {
     if (typeof obj === "object") {
@@ -255,27 +275,38 @@ function displayObject(obj, container, parentObj, parentKey) {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = obj;
-        if(typeof obj==='number'){
-            const numstri=obj.toString();
-            const numDigits = numstri.length;
-            if (numDigits > 15) {
-                input.value = numstri;
-                console.log(numstri);
-
+        if(typeof obj==='string'){
+            var text="";
+            if (obj.length> 30  && obj.charAt(0)=='x' && obj.charAt(1)=='X'){
+                for (let i = 2; i < obj.length; i++) {
+                    text += obj[i] ;
+}
+                input.value = text;
+                parentObj[0]="xX"+text;
+                console.log(parentObj[0]);
                 }
+
         }
         if (obj == 'NAS-PDU') {
             
             val=parentObj[1];
-        
-
 }
 
         input.addEventListener('input', function() {
             if (typeof obj === 'number') {
+                
                 parentObj[parentKey] = Number(this.value);
             } else {
                 parentObj[parentKey] = this.value;
+                if(typeof obj==='string'){
+                    var text="xX";
+                    if (obj.length> 30  && obj.charAt(0)=='x' && obj.charAt(1)=='X'){
+                        for(let i=0;i<this.value.length;i++){
+                            text+=this.value[i];
+                        }
+                    parentObj[parentKey] = text;
+                    }
+                }
             }
         });
         container.appendChild(input);
@@ -377,9 +408,13 @@ def decode():
     global a
     with open('./integrated/packet.json', 'r') as f:
             ngapMessage = json.load(f)
-    f.close()
+    # ngapMessage=checking_for_big_nos()
+    # f.close()
+    # print(ngapMessage)
     nasby=gettingNAS(ngapMessage)
     ngapMessage1=final_decode(nasby)
+    # print(ngapMessage1)
+
     if request.method=='GET':
             return '''
 
@@ -503,8 +538,6 @@ function displayObject(obj, container, parentObj, parentKey) {
         with open('./integrated/packet.json', 'w') as f:
             json.dump(ngapMessage, f,ensure_ascii=False)
         f.close()
-        # x=requests.get('http://127.0.0.1:5002/process_header')
-        # return redirect("http://127.0.0.1:5002/process_header")
         return "Packet Decoded Successfully"
         # return a
 @app1.route('/', methods=['POST'])
@@ -519,6 +552,7 @@ def handle_post():
             my_packet = d[x]
             js = request.get_json()
             print(js)
+            js=converting_string_to_int(js)
             scapy_packet = IP(my_packet.get_raw_packet())
             x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
             x.from_aper(scapy_packet[SCTPChunkData].data)
@@ -528,7 +562,6 @@ def handle_post():
             hey[1]=z[1]
             print(z[1])
             print("\n")
-            # print(js)
             print("\n")
             js=convert_to_bytes(js)
             js=change_data_structures(js,hey[1])
@@ -545,7 +578,6 @@ def handle_post():
             scapy_packet[SCTPChunkData].data=buf
             scapy_packet[IP].dst="192.168.100.114"
             send(scapy_packet)
-
             
             # print(oo)
             d.close()
