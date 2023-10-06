@@ -8,7 +8,7 @@ from scapy.all import *
 from pycrate_asn1rt.utils import *
 from final import final_decode,value,update_list
 from getting_nas import gettingNAS,updatingNAS,getting_msg_type
-from big_numbers import checking_for_big_nos,converting_string_to_int
+from big_numbers import checking_for_big_nos,converting_string_to_int,checking_mandatory_fields
 from pycrate_mobile.NAS5G import *
 from pycrate_mobile.NAS import *
 from pycrate_asn1dir import NGAP
@@ -43,9 +43,9 @@ ngapMessage = None
 def load_ngap_message():
     global ngapMessage
     # checking_for_big_nos()
-    # with open('./integrated/packet.json', 'r') as f:
-    #     ngapMessage = json.load(f)
-    # f.close()
+    with open('./integrated/packet.json', 'r') as f:
+        ngapMessage = json.load(f)
+    f.close()
     # def convert_to_bytes(js,par,val):
     #     if isinstance(js, dict):
 
@@ -235,6 +235,8 @@ def process_header():
         # with open('./integrated/packet.json', 'r') as f:
             # ngapMessage = json.load(f)
             ngapMessage=checking_for_big_nos()
+            mandatedic=checking_mandatory_fields()
+            
             return '''
      <!DOCTYPE html>
 <html>
@@ -247,15 +249,24 @@ def process_header():
     <div id="ngap-message"></div>
     <script>
  const ngapMessage = ''' + json.dumps(ngapMessage) + ''';
+ const manddict = ''' + json.dumps(mandatedic) + ''';
+ console.log(manddict);
     let val=0;
 function displayObject(obj, container, parentObj, parentKey) {
     if (typeof obj === "object") {
         const table = document.createElement('table');
         table.border = '1';
+        var cc;
         for (const key in obj) {
+            if (key=='id'){
+                cc=(manddict[obj['id']]);
+            }
             const tr = document.createElement('tr');
             const th = document.createElement('th');
             th.textContent = key;
+            if (cc=='mandatory'){
+                th.textContent+='*';
+            }
             tr.appendChild(th);
             const td = document.createElement('td');
             displayObject(obj[key], td, obj, key);
@@ -396,6 +407,7 @@ def save():
         scapy_packet[SCTPChunkData].data=buf
         scapy_packet[IP].dst="192.168.100.114"
         wrpcap("Saved_Modified_Packets.pcap",scapy_packet,append=True)
+        # wrpcap("Saved_Modified_Packets.pcap",scapy_packet)
         d.close()
         print("Packet Saved")
 
