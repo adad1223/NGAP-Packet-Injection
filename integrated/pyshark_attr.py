@@ -56,7 +56,7 @@ def NAS_ATTR():
         194: "PDU session establishment accept",
         }
     li=[]
-    with open('/Users/anishrishi/Documents/internship/output.json', 'r') as f:
+    with open('output.json', 'r') as f:
         x = json.load(f)
     for i in x:
         b=list(i['layers']['ngap'].values())
