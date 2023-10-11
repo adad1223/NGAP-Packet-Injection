@@ -13,7 +13,7 @@ from pycrate_mobile.NAS5G import *
 from pycrate_mobile.NAS import *
 from pycrate_asn1dir import NGAP
 from new import getting_packet_attr
-app1= Flask(__name__)
+app1= Flask(_name_)
 a=None
 def convert_strings_to_bytes(i):
     def convert_bytes_to_strings(obj):
@@ -90,15 +90,17 @@ def integrated():
     global a
     if request.method == 'POST':
         # packet_number = request.form['packet_number']
-        data = request.get_data()
-        # print(data)
-        form_data = data.decode('utf-8') 
-        parsed_data = parse_qs(form_data)
-        packet_number = parsed_data.get('listItem', [None])[0]
-        print(packet_number)
-        print(packet_number)
-        # print(type(packet_number))
-        a=packet_number
+        data = request.args
+        print(data)
+        index = data.get('index')
+        a=index
+        # form_data = data.decode('utf-8') 
+        # parsed_data = parse_qs(data)
+        # packet_number = parsed_data.get('listItem', [None])[0]
+        # print(packet_number)
+        # print(packet_number)
+        # # print(type(packet_number))
+        packet_number=a
         packet_number=int(packet_number)
         # packet_number=int(packet_number)
         with open('./integrated/1.txt', 'w') as f:
@@ -111,74 +113,13 @@ def integrated():
             json.dump(js, f,ensure_ascii=False)
         f.close()
 
-        return '''
-        <!DOCTYPE html>
-        <html>
-        <h1>You've selected the following packet</h1>
-        <h1>'''+a+'''</h1>
-        <a href="/process_header">Modify</a><br>
-
-        '''
+        return js
 
 
     else:
         lst=getting_packet_attr()
-        return '''
-<!DOCTYPE html>
-<html>
-<head>
-<title>5G Network Monitoring</title>
-<body>
-<h1>5G Network Monitoring</h1>
-<form action="/integrated" method="post">
-<div id="list"></div>
+        return lst
 
-<button id='btn'>
-Submit
-</button>
-<script>
-const a='''+((lst))+''';
-var listContainer = document.getElementById('list');
-var b=0;
-a.forEach(function(item,index) {
-  var radioButton = document.createElement('input');
-  radioButton.type = 'radio';
-  radioButton.name = 'listItem';
-  radioButton.value = index;
-    radioButton.addEventListener('click', function() {
-    b=index;
-    console.log(b);
-
-  });
-
-  var label = document.createElement('label');
-  label.appendChild(document.createTextNode(item));
-
-
-  listContainer.appendChild(radioButton);
-  listContainer.appendChild(label);
-  listContainer.appendChild(document.createElement('br'));
-});
-
-const submitButton = document.getElementById('btn');
-
-submitButton.addEventListener('click', function() {
-    console.alert("Packet Sent");
-    const packetNumber = document.getElementById('packet_number').value;
-    fetch('http://127.0.0.1:5002/integrated', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'plain/text'
-        },
-        body:b.toString()
-    });
-});
-</script>
-</form>
-</body>
-</html>
-
-        '''
 @app1.route('/process_header', methods=['GET', 'POST'])
 def process_header():
     
@@ -237,141 +178,7 @@ def process_header():
             ngapMessage=checking_for_big_nos()
             mandatedic=checking_mandatory_fields()
             
-            return '''
-     <!DOCTYPE html>
-<html>
-<head>
-    <title>NGAP Message</title>
-</head>
-<body>
-    <button><a href="/integrated">Home</a></button>
-    <h1>NGAP Message</h1>
-    <div id="ngap-message"></div>
-    <script>
- const ngapMessage = ''' + json.dumps(ngapMessage) + ''';
- const manddict = ''' + json.dumps(mandatedic) + ''';
- console.log(manddict);
-    let val=0;
-function displayObject(obj, container, parentObj, parentKey) {
-    if (typeof obj === "object") {
-        const table = document.createElement('table');
-        table.border = '1';
-        var cc;
-        for (const key in obj) {
-            if (key=='id'){
-                cc=(manddict[obj['id']]);
-            }
-            const tr = document.createElement('tr');
-            const th = document.createElement('th');
-            th.textContent = key;
-            if (cc=='mandatory'){
-                th.textContent+='*';
-            }
-            tr.appendChild(th);
-            const td = document.createElement('td');
-            displayObject(obj[key], td, obj, key);
-            tr.appendChild(td);
-            table.appendChild(tr);
-        }
-        container.appendChild(table);
-    } else if (Array.isArray(obj)) {
-        const ul = document.createElement('ul');
-        for (let i = 0; i < obj.length; i++) {
-            const li = document.createElement('li');
-            displayObject(obj[i], li, obj, i);
-            ul.appendChild(li);
-        }
-        container.appendChild(ul);
-    } else {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = obj;
-        if(typeof obj==='string'){
-            var text="";
-            if (obj.length> 30  && obj.charAt(0)=='x' && obj.charAt(1)=='X'){
-                for (let i = 2; i < obj.length; i++) {
-                    text += obj[i] ;
-}
-                input.value = text;
-                parentObj[0]="xX"+text;
-                console.log(parentObj[0]);
-                }
-
-        }
-        if (obj == 'NAS-PDU') {
-            
-            val=parentObj[1];
-}
-
-        input.addEventListener('input', function() {
-            if (typeof obj === 'number') {
-                
-                parentObj[parentKey] = Number(this.value);
-            } else {
-                parentObj[parentKey] = this.value;
-                if(typeof obj==='string'){
-                    var text="xX";
-                    if (obj.length> 30  && obj.charAt(0)=='x' && obj.charAt(1)=='X'){
-                        for(let i=0;i<this.value.length;i++){
-                            text+=this.value[i];
-                        }
-                    parentObj[parentKey] = text;
-                    }
-                }
-            }
-        });
-        container.appendChild(input);
-    }
-}
-    const container = document.getElementById('ngap-message');
-    displayObject(ngapMessage, container, ngapMessage, 'ngapMessage');
-
-    </script>
-    <button id='btn'>Submit</button>
-    <button>
-    <a href="/decode">Decode</a>
-</button>
-    <button id='btn2'>Save</button>
-    <script>
-    const submitButton = document.getElementById('btn');
-    const saveButton = document.getElementById('btn2');
-    const encoder = new TextEncoder();
-    //modifyButton.addEventListener('click', function() {
-        //fetch('http://127.0.0.1:5002', {
-            //method: 'POST',
-            //headers: {
-                //'Content-Type': 'plain/text'
-
-            //},
-            //body: encoder.encode(val)
-        //});
-    //});
-    submitButton.addEventListener('click', function() {
-    console.log('Button1 clicked')
-    fetch('http://127.0.0.1:5002', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ngapMessage)
-    }).then(response=>response.text()).then(data=>alert(data));
-
-    saveButton.addEventListener('click', function() {
-    console.log('Button clicked')
-    fetch('http://127.0.0.1:5002/save', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ngapMessage)
-    }).then(response=>response.text()).then(data=>alert(data));
-});
-
-});
-    </script>
-</body>
-</html>
-'''
+            return [json.dumps(ngapMessage),json.dumps(mandatedic)]
 @app1.route('/save', methods=['GET', 'POST'])
 def save():
     if request.method=='POST':
@@ -564,6 +371,7 @@ def handle_post():
             my_packet = d[x]
             js = request.get_json()
             print(js)
+            # print(js)
             js=converting_string_to_int(js)
             scapy_packet = IP(my_packet.get_raw_packet())
             x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
@@ -599,7 +407,6 @@ def handle_post():
         print(e)
         print("hello")
         return 'Error In the changes you made'
-if __name__ == '__main__':
+if _name_ == '_main_':
         
         app1.run(host='127.0.0.1', port=5002)
-
