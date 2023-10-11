@@ -177,7 +177,7 @@ def value(obj, par):
             par.extend(temp)
     elif isinstance(obj, dict):
         for i in obj.values():
-            if isinstance(i, int) or isinstance(i, bytes):
+            if isinstance(i, int) or isinstance(i, bytes) or isinstance(i, str):
                 par.append(i)
             else:
                 value(i, par)
@@ -196,6 +196,13 @@ def convert_to_bytes(js):
             string_value = u.decode('unicode_escape')
             u = string_value.encode('latin-1')
             js=u
+            print(js)
+        # else:
+        #     # js=js.encode('latin-1')
+        #     # js=js.encode('utf-8')
+        #     # js=js
+        #     print(js)
+
     return js
             
 def update_list(l1, l2):
@@ -207,8 +214,15 @@ def update_list(l1, l2):
         for i, v in enumerate(sublist):
             if isinstance(v, list):
                 helper(v)
+            # elif isinstance(v, str):
+            #     print(v)
             else:
-                sublist[i] = next(iterator)
+                print(v)
+                a=next(iterator)
+                if type(a)!=type(v):
+                    a=a.encode('utf-8')
+                print(a)
+                sublist[i] = a
     helper(l2)
 @app.route('/', methods=['GET', 'POST'])
 def handle_request():
@@ -268,4 +282,4 @@ def handle_request():
 
 if __name__ == '__main__':
 
-    app.run(debug=True)
+    update_list()
