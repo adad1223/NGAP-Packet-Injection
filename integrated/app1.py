@@ -13,7 +13,7 @@ from pycrate_mobile.NAS5G import *
 from pycrate_mobile.NAS import *
 from pycrate_asn1dir import NGAP
 from new import getting_packet_attr
-app1= Flask(_name_)
+app1= Flask(__name__)
 a=None
 def convert_strings_to_bytes(i):
     def convert_bytes_to_strings(obj):
@@ -122,16 +122,18 @@ def integrated():
 
 @app1.route('/process_header', methods=['GET', 'POST'])
 def process_header():
-    
+    print(ngapMessage)
     if request.method == 'POST':
+        try:
             d = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
-            # with open('/Users/anishrishi/Documents/internship/integrated/1.txt', 'r') as f:
-            #     x=f.read()
-            #     x=int(x)
-            x=requests.get('http://127.0.0.1:5002/integrated')
-            x=int(x)
+            with open('./integrated/1.txt', 'r') as f:
+                x=f.read()
+                x=int(x)
             my_packet = d[x]
             js = request.get_json()
+            print(js)
+            # print(js)
+            js=converting_string_to_int(js)
             scapy_packet = IP(my_packet.get_raw_packet())
             x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
             x.from_aper(scapy_packet[SCTPChunkData].data)
@@ -141,7 +143,6 @@ def process_header():
             hey[1]=z[1]
             print(z[1])
             print("\n")
-            print(js)
             print("\n")
             js=convert_to_bytes(js)
             js=change_data_structures(js,hey[1])
@@ -156,25 +157,18 @@ def process_header():
             buf=b'\x00'+buf
             print(buf)
             scapy_packet[SCTPChunkData].data=buf
-            scapy_packet[IP].dst="192.168.10.204"
+            scapy_packet[IP].dst="192.168.100.114"
             send(scapy_packet)
-    
-            d.close()          
-            return  '''
-<!DOCTYPE html>
-<html>
-<head>
-<title>Packet Sent</title>
-</head>
-<body>
-<h1>Packet Sent</h1>
-<p>Your packet has been sent successfully.</p>
-</body>
-</html>
-'''
+            
+            # print(oo)
+            d.close()
+            return "Packet Sent"
+        
+        except Exception as e:
+            print(e)
+            print("hello")
+            return 'Error In the changes you made'
     elif request.method=='GET':
-        # with open('./integrated/packet.json', 'r') as f:
-            # ngapMessage = json.load(f)
             ngapMessage=checking_for_big_nos()
             mandatedic=checking_mandatory_fields()
             
@@ -235,79 +229,80 @@ def decode():
     # print(ngapMessage1)
 
     if request.method=='GET':
-            return '''
+        return ngapMessage1
+#             return '''
 
-     <!DOCTYPE html>
-<html>
-<head>
-    <title>NGAP Message</title>
-</head>
-<body>
-    <h1>NGAP Message</h1>
-    <div id="ngap-message"></div>
-    <script>
- const ngapMessage = ''' + (ngapMessage1) + ''';
+#      <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>NGAP Message</title>
+# </head>
+# <body>
+#     <h1>NGAP Message</h1>
+#     <div id="ngap-message"></div>
+#     <script>
+#  const ngapMessage = ''' + (ngapMessage1) + ''';
 
-function displayObject(obj, container, parentObj, parentKey) {
-    if (typeof obj === "object") {
-        const table = document.createElement('table');
-        table.border = '1';
-        for (const key in obj) {
-            const tr = document.createElement('tr');
-            const th = document.createElement('th');
-            th.textContent = key;
-            tr.appendChild(th);
-            const td = document.createElement('td');
-            displayObject(obj[key], td, obj, key);
-            tr.appendChild(td);
-            table.appendChild(tr);
-        }
-        container.appendChild(table);
-    } else if (Array.isArray(obj)) {
-        const ul = document.createElement('ul');
-        for (let i = 0; i < obj.length; i++) {
-            const li = document.createElement('li');
-            displayObject(obj[i], li, obj, i);
-            ul.appendChild(li);
-        }
-        container.appendChild(ul);
-    } else {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = obj;
-        input.addEventListener('input', function() {
-            if (typeof obj === 'number') {
-                parentObj[parentKey] = Number(this.value);
-            } else {
-                parentObj[parentKey] = this.value;
-            }
-        });
-        container.appendChild(input);
-    }
-}
-    const container = document.getElementById('ngap-message');
-    displayObject(ngapMessage, container, ngapMessage, 'ngapMessage');
+# function displayObject(obj, container, parentObj, parentKey) {
+#     if (typeof obj === "object") {
+#         const table = document.createElement('table');
+#         table.border = '1';
+#         for (const key in obj) {
+#             const tr = document.createElement('tr');
+#             const th = document.createElement('th');
+#             th.textContent = key;
+#             tr.appendChild(th);
+#             const td = document.createElement('td');
+#             displayObject(obj[key], td, obj, key);
+#             tr.appendChild(td);
+#             table.appendChild(tr);
+#         }
+#         container.appendChild(table);
+#     } else if (Array.isArray(obj)) {
+#         const ul = document.createElement('ul');
+#         for (let i = 0; i < obj.length; i++) {
+#             const li = document.createElement('li');
+#             displayObject(obj[i], li, obj, i);
+#             ul.appendChild(li);
+#         }
+#         container.appendChild(ul);
+#     } else {
+#         const input = document.createElement('input');
+#         input.type = 'text';
+#         input.value = obj;
+#         input.addEventListener('input', function() {
+#             if (typeof obj === 'number') {
+#                 parentObj[parentKey] = Number(this.value);
+#             } else {
+#                 parentObj[parentKey] = this.value;
+#             }
+#         });
+#         container.appendChild(input);
+#     }
+# }
+#     const container = document.getElementById('ngap-message');
+#     displayObject(ngapMessage, container, ngapMessage, 'ngapMessage');
 
-    </script>
-    <button id='btn'>Submit</button>
-        <button id=btn1>
-    <a href="/process_header">Go Back</a>
-</button>
-    <script>
-    const submitButton = document.getElementById('btn');
-    submitButton.addEventListener('click', function() {
-    fetch('http://127.0.0.1:5002/decode', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ngapMessage)
-    }).then(response=>response.text()).then(data=>alert(data));
-});
-    </script>
-</body>
-</html>
-'''
+#     </script>
+#     <button id='btn'>Submit</button>
+#         <button id=btn1>
+#     <a href="/process_header">Go Back</a>
+# </button>
+#     <script>
+#     const submitButton = document.getElementById('btn');
+#     submitButton.addEventListener('click', function() {
+#     fetch('http://127.0.0.1:5002/decode', {
+#         method: 'POST',
+#         headers: {
+#             'Content-Type': 'application/json'
+#         },
+#         body: JSON.stringify(ngapMessage)
+#     }).then(response=>response.text()).then(data=>alert(data));
+# });
+#     </script>
+# </body>
+# </html>
+# '''
     elif request.method=="POST":
         with open('./integrated/packet.json', 'r') as f:
             ngapMessage = json.load(f)
@@ -359,54 +354,55 @@ function displayObject(obj, container, parentObj, parentKey) {
         f.close()
         return "Packet Decoded Successfully"
         # return a
-@app1.route('/', methods=['POST'])
-def handle_post():
-    print(ngapMessage)
-    try:
-        if request.method == 'POST':
-            d = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
-            with open('./integrated/1.txt', 'r') as f:
-                x=f.read()
-                x=int(x)
-            my_packet = d[x]
-            js = request.get_json()
-            print(js)
-            # print(js)
-            js=converting_string_to_int(js)
-            scapy_packet = IP(my_packet.get_raw_packet())
-            x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
-            x.from_aper(scapy_packet[SCTPChunkData].data)
-            z=x.get_val()
-            hey=[None]*2
-            hey[0]=z[0]
-            hey[1]=z[1]
-            print(z[1])
-            print("\n")
-            print("\n")
-            js=convert_to_bytes(js)
-            js=change_data_structures(js,hey[1])
-            print(js)
-            init_msg_pdu_modify_req=NGAP.NGAP_PDU_Descriptions.SuccessfulOutcome
-            try:
-                init_msg_pdu_modify_req.set_val(js)
-            except Exception as e:
-                init_msg_pdu_modify_req = NGAP.NGAP_PDU_Descriptions.InitiatingMessage
-                init_msg_pdu_modify_req.set_val(js)
-            buf=init_msg_pdu_modify_req.to_aper()
-            buf=b'\x00'+buf
-            print(buf)
-            scapy_packet[SCTPChunkData].data=buf
-            scapy_packet[IP].dst="192.168.100.114"
-            send(scapy_packet)
+# @app1.route('/', methods=['POST'])
+# def handle_post():
+#     print(ngapMessage)
+#     if request.method == 'POST':
+#         try:
+#             d = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
+#             with open('./integrated/1.txt', 'r') as f:
+#                 x=f.read()
+#                 x=int(x)
+#             my_packet = d[x]
+#             js = request.get_json()
+#             print(js)
+#             # print(js)
+#             js=converting_string_to_int(js)
+#             scapy_packet = IP(my_packet.get_raw_packet())
+#             x = NGAP.NGAP_PDU_Descriptions.NGAP_PDU
+#             x.from_aper(scapy_packet[SCTPChunkData].data)
+#             z=x.get_val()
+#             hey=[None]*2
+#             hey[0]=z[0]
+#             hey[1]=z[1]
+#             print(z[1])
+#             print("\n")
+#             print("\n")
+#             js=convert_to_bytes(js)
+#             js=change_data_structures(js,hey[1])
+#             print(js)
+#             init_msg_pdu_modify_req=NGAP.NGAP_PDU_Descriptions.SuccessfulOutcome
+#             try:
+#                 init_msg_pdu_modify_req.set_val(js)
+#             except Exception as e:
+#                 init_msg_pdu_modify_req = NGAP.NGAP_PDU_Descriptions.InitiatingMessage
+#                 init_msg_pdu_modify_req.set_val(js)
+#             buf=init_msg_pdu_modify_req.to_aper()
+#             buf=b'\x00'+buf
+#             print(buf)
+#             scapy_packet[SCTPChunkData].data=buf
+#             scapy_packet[IP].dst="192.168.100.114"
+#             send(scapy_packet)
             
-            # print(oo)
-            d.close()
-            return "Packet Sent"
+#             # print(oo)
+#             d.close()
+#             return "Packet Sent"
         
-    except Exception as e:
-        print(e)
-        print("hello")
-        return 'Error In the changes you made'
-if _name_ == '_main_':
+#         except Exception as e:
+#             print(e)
+#             print("hello")
+#             return 'Error In the changes you made'
+if __name__ == '__main__':
         
         app1.run(host='127.0.0.1', port=5002)
+
