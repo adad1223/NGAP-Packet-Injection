@@ -1,5 +1,6 @@
 from flask import Flask, request,redirect,flash
 import pyshark
+from flask_cors import CORS, cross_origin
 from app2 import *
 from urllib.parse import parse_qs
 import requests
@@ -14,6 +15,7 @@ from pycrate_mobile.NAS import *
 from pycrate_asn1dir import NGAP
 from new import getting_packet_attr
 app1= Flask(__name__)
+CORS(app1, support_credentials=True)
 a=None
 def convert_strings_to_bytes(i):
     def convert_bytes_to_strings(obj):
@@ -40,6 +42,7 @@ def convert_strings_to_bytes(i):
     return json_string
 ngapMessage = None
 @app1.before_request
+@cross_origin(supports_credentials=True)
 def load_ngap_message():
     global ngapMessage
     # checking_for_big_nos()
@@ -68,6 +71,7 @@ def load_ngap_message():
     # val = convert_to_bytes(ngapMessage,None,val)
     # print(val)
 @app1.route('/', methods=['GET'])
+@cross_origin(supports_credentials=True)
 def index():
     # flash('This is a flash message')
     return '''
@@ -86,6 +90,7 @@ def index():
 a=5
 print(ngapMessage)
 @app1.route('/integrated', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 def integrated():
     global a
     if request.method == 'POST':
@@ -121,6 +126,7 @@ def integrated():
         return lst
 
 @app1.route('/process_header', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 def process_header():
     print(ngapMessage)
     if request.method == 'POST':
@@ -174,6 +180,7 @@ def process_header():
             
             return [json.dumps(ngapMessage),json.dumps(mandatedic)]
 @app1.route('/save', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 def save():
     if request.method=='POST':
         d = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
@@ -217,6 +224,7 @@ def save():
         return 'Saved'
         
 @app1.route('/decode', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 def decode():
     global a
     with open('./integrated/packet.json', 'r') as f:
