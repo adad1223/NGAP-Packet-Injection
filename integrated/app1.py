@@ -128,7 +128,7 @@ def integrated():
 @app1.route('/process_header', methods=['GET', 'POST'])
 @cross_origin(supports_credentials=True)
 def process_header():
-    print(ngapMessage)
+    #print(ngapMessage)
     if request.method == 'POST':
         try:
             d = pyshark.FileCapture("ui.pcap",display_filter='ngap', use_json=True, include_raw=True)
