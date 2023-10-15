@@ -222,7 +222,18 @@ def save():
         return "Saved"
     elif request.method=='GET':
         return 'Saved'
-        
+
+@app1.route('/recievebytes', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
+def recievebytes():
+    if request.method=='POST':
+        nasby=request.get_json()
+        print(nasby)
+        u=nasby.encode('utf-8')
+        string_value = u.decode('unicode_escape')
+        nasby=string_value
+        ngapMessage1=final_decode(nasby)
+        return ngapMessage1         
 @app1.route('/decode', methods=['GET', 'POST'])
 @cross_origin(supports_credentials=True)
 def decode():
