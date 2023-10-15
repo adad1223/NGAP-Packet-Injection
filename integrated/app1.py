@@ -168,12 +168,12 @@ def process_header():
             
             # print(oo)
             d.close()
-            return "Packet Sent"
+            return {'msg':'Packet Sent'}
         
         except Exception as e:
             print(e)
             print("hello")
-            return 'Error In the changes you made'
+            return {'msg':e}
     elif request.method=='GET':
             ngapMessage=checking_for_big_nos()
             mandatedic=checking_mandatory_fields()
