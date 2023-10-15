@@ -42,7 +42,7 @@ def convert_strings_to_bytes(i):
     return json_string
 ngapMessage = None
 @app1.before_request
-@cross_origin(supports_credentials=True)
+#@cross_origin(supports_credentials=True)
 def load_ngap_message():
     global ngapMessage
     # checking_for_big_nos()
@@ -228,12 +228,13 @@ def save():
 def recievebytes():
     if request.method=='POST':
         nasby=request.get_json()
+        nasby=nasby['data']
         print(nasby)
         u=nasby.encode('utf-8')
         string_value = u.decode('unicode_escape')
         nasby=string_value
         ngapMessage1=final_decode(nasby)
-        return ngapMessage1         
+        return ngapMessage1        
 @app1.route('/decode', methods=['GET', 'POST'])
 @cross_origin(supports_credentials=True)
 def decode():
