@@ -368,11 +368,12 @@ def decode():
         print(msg.to_bytes())
         a=msg.to_bytes()
         a=repr(a)[2:-1]
-        ngapMessage=updatingNAS(ngapMessage,a)
-        with open('./integrated/packet.json', 'w') as f:
-            json.dump(ngapMessage, f,ensure_ascii=False)
-        f.close()
-        return "Packet Decoded Successfully"
+        return {'data':a}
+        #ngapMessage=updatingNAS(ngapMessage,a)
+        #with open('./integrated/packet.json', 'w') as f:
+            #json.dump(ngapMessage, f,ensure_ascii=False)
+        #f.close()
+        #return "Packet Decoded Successfully"
         # return a
 # @app1.route('/', methods=['POST'])
 # def handle_post():
