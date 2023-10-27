@@ -66,9 +66,9 @@ def NAS_ATTR():
             try:
                 l=(i['layers']['ngap']['nas_5gs_sm_message_type'])
                 # print(l)
-                li.append([b[9],FGMMdict[int(a,16)],FGMMdict[int(l,16)]])
+                li.append([b[9],FGMMdict[int(a)],FGMMdict[int(l)]])
             except:
-                li.append([b[9],FGMMdict[int(a,16)]])
+                li.append([b[9],FGMMdict[int(a)]])
 
         except Exception as e:
             li.append([bb])
